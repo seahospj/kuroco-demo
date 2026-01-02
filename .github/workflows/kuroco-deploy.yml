@@ -1,0 +1,170 @@
+name: Build and deploy to Kuroco front
+
+on:
+  push:
+    branches:
+      - main
+  issue_comment:
+    types: [created, edited]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '18.x'
+  KUROCO_DOMAIN: 'wakuheru.g.kuroco-front.app'
+  KUROCO_ENDPOINT: 'https://wakuheru.g.kuroco.app/direct/menu/github/'
+
+jobs:
+  pullreq_build:
+    name: Build(pullreq)
+    if: (github.repository == 'seahospj/kuroco-demo' && github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/kuroco stage') && github.event.issue.pull_request != null)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get branch name and sha
+        id: get_branch
+        env:
+          KUROCO_AUTH: ${{ secrets.KUROCO_AUTH_TOKEN }}
+        run: |
+          PR=$(curl -H "X-Kuroco-Auth: token ${KUROCO_AUTH}" "${KUROCO_ENDPOINT}?pr=${{ github.event.issue.pull_request.url }}")
+          echo "branch=$(echo "$PR" | jq -r '.ref')" >> "$GITHUB_OUTPUT"
+          echo "sha=$(echo "$PR" | jq -r '.sha')" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get_branch.outputs.branch }}
+          fetch-depth: 0
+        continue-on-error: true
+
+      - name: Fallback checkout if branch not found
+        if: failure()
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || 'main' }}
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: CI Cache
+        uses: actions/cache@v4
+        id: node_modules_cache_id
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.get_branch.outputs.branch }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Copy kuroco_front.json into dist
+        run: cp ./kuroco_front.json ./dist/
+
+      - name: Validate kuroco_front.json
+        run: |
+          if [ -f "./dist/kuroco_front.json" ]; then
+            echo "kuroco_front.json found"
+            if jq empty ./dist/kuroco_front.json; then
+              echo "kuroco_front.json is valid JSON"
+            else
+              echo "Error: kuroco_front.json is not valid JSON"
+              exit 1
+            fi
+          else
+            echo "Error: kuroco_front.json not found in dist"
+            exit 1
+          fi
+
+      - name: Zip artifact for upload
+        run: cd dist && zip ../dist.zip . -r
+
+      - name: Archive Production Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.get_branch.outputs.sha }}-${{ github.run_id }}
+          path: dist.zip
+          retention-days: 7
+
+      - name: Wait for Artifact download
+        run: sleep 15
+
+      - name: Webhook
+        uses: diverta/workflow-webhook@v3
+        with:
+          webhook_url: ${{ env.KUROCO_ENDPOINT }}
+          webhook_secret: ${{ secrets.KUROCO_WEBHOOK_SECRET }}
+          data: '{"single_zip":"1","domain":"${{ env.KUROCO_DOMAIN }}","pr":"${{ github.event.issue.pull_request.url }}",  "repository":"${{ github.repository }}", "run_id":"${{ github.run_id }}", "hash":"${{ steps.get_branch.outputs.sha }}"}'
+
+  pushed_build:
+    name: Build(pushed)
+    if: (github.repository == 'seahospj/kuroco-demo' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: CI Cache
+        uses: actions/cache@v4
+        id: node_modules_cache_id
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.ref_name }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Copy kuroco_front.json into dist
+        run: cp ./kuroco_front.json ./dist/
+
+      - name: Validate kuroco_front.json
+        run: |
+          if [ -f "./dist/kuroco_front.json" ]; then
+            echo "kuroco_front.json found"
+            if jq empty ./dist/kuroco_front.json; then
+              echo "kuroco_front.json is valid JSON"
+            else
+              echo "Error: kuroco_front.json is not valid JSON"
+              exit 1
+            fi
+          else
+            echo "Error: kuroco_front.json not found in dist"
+            exit 1
+          fi
+
+      - name: Zip artifact for upload
+        run: cd dist && zip ../dist.zip . -r
+
+      - name: Archive Production Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.sha }}-${{ github.run_id }}
+          path: dist.zip
+          retention-days: 7
+
+      - name: Webhook
+        uses: diverta/workflow-webhook@v3
+        with:
+          webhook_url: ${{ env.KUROCO_ENDPOINT }}
+          webhook_secret: ${{ secrets.KUROCO_WEBHOOK_SECRET }}
+          data: '{"single_zip":"1","domain":"${{ env.KUROCO_DOMAIN }}","pr":"${{ github.event.issue.pull_request.url }}",  "repository":"${{ github.repository }}", "run_id":"${{ github.run_id }}", "hash":"${{ github.sha }}"}'
+
