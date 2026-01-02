@@ -1,0 +1,534 @@
+openapi: 3.1.0
+info:
+  title: Wakuhel
+  version: '1.0'
+  description: ワクヘル記事API
+servers:
+  -
+    url: 'https://wakuheru.g.kuroco.app'
+    description: 'API Backend'
+paths:
+  /rcms-api/4/articles:
+    get:
+      tags:
+        - コンテンツ
+      summary: 記事データ取得
+      description: |
+        
+        ### **Topics::list (v1)**
+        
+        記事データを取得する
+      parameters:
+        -
+          name: _output_format
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: '形式 (json|xml|csv|zip)'
+        -
+          name: _lang
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 言語
+        -
+          name: _charset
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 文字コード
+        -
+          name: cnt
+          schema:
+            type: integer
+            format: int32
+            minimum: -2147483648
+            maximum: 2147483647
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 1ページの行数
+        -
+          name: pageID
+          schema:
+            type: integer
+            format: int32
+            minimum: -2147483648
+            maximum: 2147483647
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: ページID
+        -
+          name: filter
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: フィルタークエリ
+        -
+          name: filter_lang
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: ''
+        -
+          name: custom_search_id
+          schema:
+            type: integer
+            format: int32
+            minimum: -2147483648
+            maximum: 2147483647
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 検索条件
+        -
+          name: 'contents_type[]'
+          schema:
+            type: array
+            items:
+              anyOf:
+                -
+                  type: string
+                  format: ''
+                -
+                  type: integer
+                  format: int32
+                  minimum: -2147483648
+                  maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 表示するカテゴリID、設定がない場合はすべてのカテゴリが対象。
+        -
+          name: 'category_parent_id[]'
+          schema:
+            type: array
+            items:
+              anyOf:
+                -
+                  type: string
+                  format: ''
+                -
+                  type: integer
+                  format: int32
+                  minimum: -2147483648
+                  maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 親カテゴリで絞り込む
+        -
+          name: 'exclude_category_parent_id[]'
+          schema:
+            type: array
+            items:
+              anyOf:
+                -
+                  type: string
+                  format: ''
+                -
+                  type: integer
+                  format: int32
+                  minimum: -2147483648
+                  maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 表示しないカテゴリID
+        -
+          name: date
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 日付
+        -
+          name: 'exclude_topics_id[]'
+          schema:
+            type: array
+            items:
+              anyOf:
+                -
+                  type: string
+                  format: ''
+                -
+                  type: integer
+                  format: int32
+                  minimum: -2147483648
+                  maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 除外するコンテンツID
+        -
+          name: 'tag_category_id[]'
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: -2147483648
+              maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 表示対象になるタグカテゴリID、設定がない場合はすべてのカテゴリが対象になります。
+        -
+          name: 'tag_id[]'
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: -2147483648
+              maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 表示対象になるタグIDです。
+        -
+          name: tag_cond
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: タグの絞り込み方を変える（デフォルト：OR)
+        -
+          name: 'exclude_tag_id[]'
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: -2147483648
+              maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 表示対象から除外するタグIDです。
+        -
+          name: 'exclude_tag_category_id[]'
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: -2147483648
+              maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 表示対象から除外するタグカテゴリIDです。
+        -
+          name: my_favorite_list
+          schema:
+            type: integer
+            format: int32
+            minimum: -2147483648
+            maximum: 2147483647
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 自分のお気に入りでコンテンツ絞り込む
+        -
+          name: my_comment_list
+          schema:
+            type: integer
+            format: int32
+            minimum: -2147483648
+            maximum: 2147483647
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: ''
+        -
+          name: my_own_list
+          schema:
+            type: integer
+            format: int32
+            minimum: -2147483648
+            maximum: 2147483647
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: ''
+        -
+          name: order_query
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: '並び順を設定する 。例）topics_id=ASC'
+        -
+          name: 'order_by_id[]'
+          schema:
+            type: array
+            items:
+              anyOf:
+                -
+                  type: string
+                  format: ''
+                -
+                  type: integer
+                  format: int32
+                  minimum: -2147483648
+                  maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: topics_idで並び順を指定できます。指定したtopics_idのデータが上位表示されます。
+        -
+          name: central_id
+          schema:
+            anyOf:
+              -
+                type: integer
+                format: int32
+                minimum: -2147483648
+                maximum: 2147483647
+              -
+                type: string
+                format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 取得の中心にするID
+        -
+          name: similar_search_id
+          schema:
+            anyOf:
+              -
+                type: integer
+                format: int32
+                minimum: -2147483648
+                maximum: 2147483647
+              -
+                type: string
+                format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 類似検索ID(Slug)
+        -
+          name: 'topics_group_id[]'
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: -2147483648
+              maximum: 2147483647
+            minItems: 1
+          in: query
+          required: true
+          style: form
+          explode: true
+          description: コンテンツ定義ID
+        -
+          name: 'id[]'
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: -2147483648
+              maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 表示するコンテンツID
+        -
+          name: type
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 'グルーピングの種類(array or object), default: array'
+        -
+          name: groupBy
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: グルーピングの単位(category)
+        -
+          name: 'group_by_category_id[]'
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+              minimum: -2147483648
+              maximum: 2147483647
+            minItems: 0
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: カテゴリーでグルーピングした場合、絞り込むカテゴリID
+        -
+          name: show_empty_categories
+          schema:
+            type: boolean
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 'コンテンツが存在しないカテゴリも表示するかを指定します。（表示する:1, 表示しない:0）'
+        -
+          name: order_by_category_count
+          schema:
+            type: boolean
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: カテゴリごとの件数で並べ替える
+      responses:
+        200:
+          description: 'Topics data successfully fetched'
+        400:
+          description: 'Bad request'
+        401:
+          description: Unauthorized
+        404:
+          description: 'Topics data could not be found'
+        406:
+          description: 'Specified output format is not supported'
+      security:
+        -
+          Token-Auth: []
+      operationId: getRcmsApi4Articles
+  '/rcms-api/4/articles/{topics_id}':
+    get:
+      tags:
+        - コンテンツ
+      summary: 記事IDの取得
+      description: |
+        
+        ### **Topics::details (v1)**
+        
+        記事IDを取得します。
+      parameters:
+        -
+          name: topics_id
+          schema:
+            type: string
+            format: ''
+          in: path
+          required: true
+          style: simple
+        -
+          name: _output_format
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: '形式 (json|xml|csv|zip)'
+        -
+          name: _lang
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 言語
+        -
+          name: _charset
+          schema:
+            type: string
+            format: ''
+          in: query
+          required: false
+          style: form
+          explode: true
+          description: 文字コード
+      responses:
+        200:
+          description: 'Fetch the details for a given topic'
+        404:
+          description: 'Topics for given id could not be found'
+        406:
+          description: 'Specified output format is not supported'
+      security:
+        -
+          Token-Auth: []
+      operationId: getRcmsApi4ArticlesTopicsId
+components:
+  schemas: {  }
+  securitySchemes:
+    Token-Auth:
+      type: apiKey
+      in: header
+      name: X-RCMS-API-ACCESS-TOKEN
