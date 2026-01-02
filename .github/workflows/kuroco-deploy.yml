@@ -59,6 +59,13 @@ jobs:
           path: "**/node_modules"
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.get_branch.outputs.branch }}-${{ hashFiles('**/package-lock.json') }}
 
+      - name: Write env for Vite
+        run: |
+          cat <<'EOF' > .env.production
+          VITE_API_BASE_URL=https://wakuheru.g.kuroco.app
+          VITE_API_TOKEN=cc94b69e011cf9128c98f3c90946bd8e1a6f022ebb6fdbf65f50a81cb3152946
+          EOF
+
       - name: Install dependencies
         if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
         run: npm ci
@@ -125,6 +132,13 @@ jobs:
         with:
           path: "**/node_modules"
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.ref_name }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Write env for Vite
+        run: |
+          cat <<'EOF' > .env.production
+          VITE_API_BASE_URL=https://wakuheru.g.kuroco.app
+          VITE_API_TOKEN=cc94b69e011cf9128c98f3c90946bd8e1a6f022ebb6fdbf65f50a81cb3152946
+          EOF
 
       - name: Install dependencies
         if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
