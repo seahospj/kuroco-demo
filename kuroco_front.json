@@ -1,0 +1,25 @@
+{
+  "project": "kuroco-demo-front",
+  "env": {
+    "dev": {
+      "apiBaseUrl": "https://wakuheru.g.kuroco.app",
+      "topicsGroupId": 8,
+      "staticToken": "f9f2b6b657ee42ed9e592bc561beccc7d0326724ff3a6f77bb4b950809b98c6b",
+      "pageSize": 12
+    },
+    "local": {
+      "apiBaseUrl": "/api",
+      "topicsGroupId": 8,
+      "staticToken": "f9f2b6b657ee42ed9e592bc561beccc7d0326724ff3a6f77bb4b950809b98c6b",
+      "pageSize": 12
+    }
+  },
+  "build": {
+    "output": "dist",
+    "framework": "vite-react",
+    "server": {
+      "port": 5173
+    }
+  }
+}
+
